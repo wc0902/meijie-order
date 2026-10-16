@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#58784e">
+  <title>梅姐蔬食｜線上訂購</title>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    :root {
+      --green: #58784e;
+      --green-dark: #3f5d38;
+      --cream: #faf8f1;
+      --text: #30382d;
+      --muted: #777d72;
+      --border: #e6e4da;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--cream);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+
+    .header {
+      padding: 30px 20px 26px;
+      background: var(--green);
+      color: white;
+      text-align: center;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: 27px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .container {
+      width: min(100% - 28px, 560px);
+      margin: 22px auto 36px;
+    }
+
+    .notice {
+      padding: 14px 16px;
+      border: 1px solid #e2e8d9;
+      border-radius: 12px;
+      background: #f0f4e9;
+      color: var(--green-dark);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .section-title {
+      margin: 25px 0 13px;
+      font-size: 19px;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 17px 15px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: white;
+    }
+
+    .product-info {
+      min-width: 0;
+    }
+
+    .product-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .product-price {
+      margin-top: 7px;
+      color: var(--green);
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .unit {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .quantity {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quantity button {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: white;
+      color: var(--green-dark);
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .quantity button:active {
+      background: #edf2e8;
+    }
+
+    .quantity-value {
+      min-width: 18px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .summary {
+      margin-top: 22px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: white;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 17px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .total-label {
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .total-price {
+      color: var(--green-dark);
+      font-size: 25px;
+      font-weight: 750;
+    }
+
+    .customer {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .status {
+      margin-top: 6px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .submit-button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: var(--green);
+      color: white;
+      font-size: 16px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .submit-button:disabled {
+      background: #a8b2a3;
+      cursor: not-allowed;
+    }
+
+    .footer {
+      margin: 22px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <h1 class="brand">梅姐蔬食</h1>
+    <p class="subtitle">用心製作 · 新鮮蔬食 · 線上訂購</p>
+  </header>
+
+  <main class="container">
+    <div class="notice">
+      歡迎來到梅姐蔬食！<br>
+      請選擇想購買的品項與數量，確認金額後即可準備送出訂單。
+    </div>
+
+    <h2 class="section-title">選購商品</h2>
+    <div id="product-list"></div>
+
+    <section class="summary">
+      <h2 class="section-title" style="margin-top:0">訂單摘要</h2>
+      <div id="order-summary">
+        <div class="summary-row">
+          <span>尚未選擇商品</span>
+          <span>NT$0</span>
+        </div>
+      </div>
+
+      <div class="total-row">
+        <span class="total-label">訂單總額</span>
+        <span class="total-price" id="total">NT$0</span>
+      </div>
+    </section>
+
+    <section class="customer">
+      <strong>LINE 客戶身分</strong>
+      <div id="liff-status" class="status">
+        正在初始化 LINE...
+      </div>
+    </section>
+
+    <button id="submit-button" class="submit-button" disabled>
+      訂購功能設定中
+    </button>
+
+    <p class="footer">
+      梅姐蔬食｜感謝您的支持<br>
+      本頁目前為測試版本，尚未正式建立訂單。
+    </p>
+  </main>
+
+  <script>
+    // 下一階段建立 LIFF App 後，再填入實際的 LIFF ID。
+    const LIFF_ID = "請填入你的LIFF_ID";
+
+    const products = [
+      { id: "tofu-sushi", name: "豆皮壽司", price: 100, unit: "份" },
+      { id: "signature-sushi", name: "招牌壽司", price: 100, unit: "份" },
+      { id: "vegetable-box", name: "元氣時蔬餐盒", price: 80, unit: "份" },
+      { id: "energy-drink", name: "能量穀漿", price: 70, unit: "杯" }
+    ];
+
+    const quantities = {};
+    products.forEach(product => {
+      quantities[product.id] = 0;
+    });
+
+    function renderProducts() {
+      const list = document.getElementById("product-list");
+
+      list.innerHTML = products.map(product => `
+        <article class="product">
+          <div class="product-info">
+            <h3 class="product-name">${product.name}</h3>
+            <div class="product-price">
+              NT$${product.price}
+              <span class="unit">／${product.unit}</span>
+            </div>
+          </div>
+
+          <div class="quantity">
+            <button type="button"
+              aria-label="減少${product.name}"
+              data-action="minus"
+              data-id="${product.id}">−</button>
+
+            <span class="quantity-value"
+              id="qty-${product.id}">0</span>
+
+            <button type="button"
+              aria-label="增加${product.name}"
+              data-action="plus"
+              data-id="${product.id}">+</button>
+          </div>
+        </article>
+      `).join("");
+
+      list.addEventListener("click", handleQuantityClick);
+      renderSummary();
+    }
+
+    function handleQuantityClick(event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const action = button.dataset.action;
+
+      if (action === "plus") {
+        quantities[id] += 1;
+      } else if (action === "minus") {
+        quantities[id] = Math.max(0, quantities[id] - 1);
+      }
+
+      document.getElementById("qty-" + id).textContent =
+        quantities[id];
+
+      renderSummary();
+    }
+
+    function renderSummary() {
+      const selected = products.filter(
+        product => quantities[product.id] > 0
+      );
+
+      const total = selected.reduce(
+        (sum, product) =>
+          sum + product.price * quantities[product.id],
+        0
+      );
+
+      const summary = document.getElementById("order-summary");
+
+      if (selected.length === 0) {
+        summary.innerHTML = `
+          <div class="summary-row">
+            <span>尚未選擇商品</span>
+            <span>NT$0</span>
+          </div>`;
+      } else {
+        summary.innerHTML = selected.map(product => `
+          <div class="summary-row">
+            <span>${product.name} × ${quantities[product.id]} ${product.unit}</span>
+            <span>NT$${product.price * quantities[product.id]}</span>
+          </div>
+        `).join("");
+      }
+
+      document.getElementById("total").textContent =
+        "NT$" + total;
+    }
+
+    async function initializeLiff() {
+      const status = document.getElementById("liff-status");
+
+      if (!LIFF_ID || LIFF_ID === "請填入你的LIFF_ID") {
+        status.textContent =
+          "網站介面已建立，等待設定 LIFF ID。";
+        return;
+      }
+
+      try {
+        await liff.init({ liffId: LIFF_ID });
+
+        if (!liff.isLoggedIn()) {
+          status.textContent = "請登入 LINE 以繼續。";
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+
+        status.textContent =
+          "已登入 LINE：" + profile.displayName;
+
+      } catch (error) {
+        console.error("LIFF 初始化失敗", error);
+        status.textContent =
+          "LINE 初始化失敗，請確認 LIFF 設定。";
+      }
+    }
+
+    renderProducts();
+    initializeLiff();
+  </script>
+</body>
+</html>
