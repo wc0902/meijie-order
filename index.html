@@ -245,11 +245,55 @@
     </section>
 
     <section class="customer">
-      <strong>LINE 客戶身分</strong>
-      <div id="liff-status" class="status">
-        正在初始化 LINE...
-      </div>
-    </section>
+  <strong>LINE 客戶身分</strong>
+  <div id="liff-status" class="status">
+    正在初始化 LINE...
+  </div>
+</section>
+
+<section class="customer">
+  <strong>訂購人資料</strong>
+
+  <div style="margin-top:12px">
+    <label for="customer-name">姓名 *</label>
+    <input
+      id="customer-name"
+      type="text"
+      maxlength="50"
+      autocomplete="name"
+      placeholder="請輸入訂購人姓名"
+      required
+      style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px"
+    >
+  </div>
+
+  <div style="margin-top:14px">
+    <label for="customer-phone">聯絡電話 *</label>
+    <input
+      id="customer-phone"
+      type="tel"
+      maxlength="20"
+      autocomplete="tel"
+      placeholder="例如：0912345678"
+      required
+      style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px"
+    >
+  </div>
+
+  <div style="margin-top:14px">
+    <label for="pickup-info">取貨日期、時間或其他需求 *</label>
+    <textarea
+      id="pickup-info"
+      maxlength="200"
+      rows="3"
+      placeholder="例如：10/20 下午 3 點取貨"
+      required
+      style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px;resize:vertical"
+    ></textarea>
+  </div>
+</section>
+
+<div id="order-status" class="status" role="status" aria-live="polite"></div>
 
     <button id="submit-button" class="submit-button" disabled>
       訂購功能設定中
