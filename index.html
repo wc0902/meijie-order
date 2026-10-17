@@ -518,7 +518,7 @@
         "訂單已送出！請留意 LINE 訊息，並確認取貨安排。";
       orderStatus.style.color = "#3f5d38";
 
-      quantities && products.forEach(product => {
+      products.forEach(product => {
         quantities[product.id] = 0;
         document.getElementById("qty-" + product.id).textContent = "0";
       });
