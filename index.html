@@ -296,8 +296,8 @@
 <div id="order-status" class="status" role="status" aria-live="polite"></div>
 
     <button id="submit-button" class="submit-button" disabled>
-      訂購功能設定中
-    </button>
+  正在連線 LINE…
+</button>
 
     <p class="footer">
       梅姐蔬食｜感謝您的支持<br>
@@ -306,138 +306,244 @@
   </main>
 
   <script>
-    // 下一階段建立 LIFF App 後，再填入實際的 LIFF ID。
-    const LIFF_ID = "2012058131-jaJTCBOA";
+  const LIFF_ID = "2012058131-jaJTCBOA";
+  const WORKER_URL =
+    "https://meijie-line-bot.weichen0902.workers.dev/liff-order";
 
-    const products = [
-      { id: "tofu-sushi", name: "豆皮壽司", price: 100, unit: "份" },
-      { id: "signature-sushi", name: "招牌壽司", price: 100, unit: "份" },
-      { id: "vegetable-box", name: "元氣時蔬餐盒", price: 80, unit: "份" },
-      { id: "energy-drink", name: "能量穀漿", price: 70, unit: "杯" }
-    ];
+  const products = [
+    { id: "tofu-sushi", name: "豆皮壽司", price: 100, unit: "份" },
+    { id: "signature-sushi", name: "招牌壽司", price: 100, unit: "份" },
+    { id: "vegetable-box", name: "元氣時蔬餐盒", price: 80, unit: "份" },
+    { id: "energy-drink", name: "能量穀漿", price: 70, unit: "杯" }
+  ];
 
-    const quantities = {};
-    products.forEach(product => {
-      quantities[product.id] = 0;
-    });
+  const quantities = {};
+  let liffReady = false;
+  let submitting = false;
 
-    function renderProducts() {
-      const list = document.getElementById("product-list");
+  products.forEach(product => {
+    quantities[product.id] = 0;
+  });
 
-      list.innerHTML = products.map(product => `
-        <article class="product">
-          <div class="product-info">
-            <h3 class="product-name">${product.name}</h3>
-            <div class="product-price">
-              NT$${product.price}
-              <span class="unit">／${product.unit}</span>
-            </div>
+  const submitButton = document.getElementById("submit-button");
+  const liffStatus = document.getElementById("liff-status");
+  const orderStatus = document.getElementById("order-status");
+
+  function renderProducts() {
+    const list = document.getElementById("product-list");
+
+    list.innerHTML = products.map(product => `
+      <article class="product">
+        <div class="product-info">
+          <h3 class="product-name">${product.name}</h3>
+          <div class="product-price">
+            NT$${product.price}
+            <span class="unit">／${product.unit}</span>
           </div>
+        </div>
 
-          <div class="quantity">
-            <button type="button"
-              aria-label="減少${product.name}"
-              data-action="minus"
-              data-id="${product.id}">−</button>
+        <div class="quantity">
+          <button type="button"
+            aria-label="減少${product.name}"
+            data-action="minus"
+            data-id="${product.id}">−</button>
 
-            <span class="quantity-value"
-              id="qty-${product.id}">0</span>
+          <span class="quantity-value" id="qty-${product.id}">0</span>
 
-            <button type="button"
-              aria-label="增加${product.name}"
-              data-action="plus"
-              data-id="${product.id}">+</button>
-          </div>
-        </article>
+          <button type="button"
+            aria-label="增加${product.name}"
+            data-action="plus"
+            data-id="${product.id}">+</button>
+        </div>
+      </article>
+    `).join("");
+
+    list.addEventListener("click", handleQuantityClick);
+    renderSummary();
+  }
+
+  function handleQuantityClick(event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button || submitting) return;
+
+    const id = button.dataset.id;
+    const action = button.dataset.action;
+
+    if (action === "plus" && quantities[id] < 99) {
+      quantities[id] += 1;
+    } else if (action === "minus") {
+      quantities[id] = Math.max(0, quantities[id] - 1);
+    }
+
+    document.getElementById("qty-" + id).textContent = quantities[id];
+    renderSummary();
+  }
+
+  function getSelectedProducts() {
+    return products
+      .filter(product => quantities[product.id] > 0)
+      .map(product => ({
+        name: product.name,
+        quantity: quantities[product.id]
+      }));
+  }
+
+  function renderSummary() {
+    const selected = products.filter(
+      product => quantities[product.id] > 0
+    );
+
+    const total = selected.reduce(
+      (sum, product) =>
+        sum + product.price * quantities[product.id],
+      0
+    );
+
+    const summary = document.getElementById("order-summary");
+
+    if (selected.length === 0) {
+      summary.innerHTML = `
+        <div class="summary-row">
+          <span>尚未選擇商品</span>
+          <span>NT$0</span>
+        </div>`;
+    } else {
+      summary.innerHTML = selected.map(product => `
+        <div class="summary-row">
+          <span>${product.name} × ${quantities[product.id]} ${product.unit}</span>
+          <span>NT$${product.price * quantities[product.id]}</span>
+        </div>
       `).join("");
-
-      list.addEventListener("click", handleQuantityClick);
-      renderSummary();
     }
 
-    function handleQuantityClick(event) {
-      const button = event.target.closest("button[data-action]");
-      if (!button) return;
+    document.getElementById("total").textContent = "NT$" + total;
+  }
 
-      const id = button.dataset.id;
-      const action = button.dataset.action;
+  async function initializeLiff() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
 
-      if (action === "plus") {
-        quantities[id] += 1;
-      } else if (action === "minus") {
-        quantities[id] = Math.max(0, quantities[id] - 1);
-      }
-
-      document.getElementById("qty-" + id).textContent =
-        quantities[id];
-
-      renderSummary();
-    }
-
-    function renderSummary() {
-      const selected = products.filter(
-        product => quantities[product.id] > 0
-      );
-
-      const total = selected.reduce(
-        (sum, product) =>
-          sum + product.price * quantities[product.id],
-        0
-      );
-
-      const summary = document.getElementById("order-summary");
-
-      if (selected.length === 0) {
-        summary.innerHTML = `
-          <div class="summary-row">
-            <span>尚未選擇商品</span>
-            <span>NT$0</span>
-          </div>`;
-      } else {
-        summary.innerHTML = selected.map(product => `
-          <div class="summary-row">
-            <span>${product.name} × ${quantities[product.id]} ${product.unit}</span>
-            <span>NT$${product.price * quantities[product.id]}</span>
-          </div>
-        `).join("");
-      }
-
-      document.getElementById("total").textContent =
-        "NT$" + total;
-    }
-
-    async function initializeLiff() {
-      const status = document.getElementById("liff-status");
-
-      if (!LIFF_ID || LIFF_ID === "請填入你的LIFF_ID") {
-        status.textContent =
-          "網站介面已建立，等待設定 LIFF ID。";
+      if (!liff.isLoggedIn()) {
+        liffStatus.textContent = "請登入 LINE 以繼續。";
+        liff.login();
         return;
       }
 
-      try {
-        await liff.init({ liffId: LIFF_ID });
+      const profile = await liff.getProfile();
 
-        if (!liff.isLoggedIn()) {
-          status.textContent = "請登入 LINE 以繼續。";
-          liff.login();
-          return;
-        }
+      liffStatus.textContent = "已登入 LINE：" + profile.displayName;
+      liffReady = true;
+      submitButton.disabled = false;
+      submitButton.textContent = "送出訂單";
+    } catch (error) {
+      console.error("LIFF 初始化失敗", error);
+      liffStatus.textContent = "LINE 初始化失敗，請從 LINE 內重新開啟訂購頁。";
+      submitButton.disabled = true;
+    }
+  }
 
-        const profile = await liff.getProfile();
+  async function submitOrder() {
+    if (submitting) return;
 
-        status.textContent =
-          "已登入 LINE：" + profile.displayName;
+    orderStatus.textContent = "";
 
-      } catch (error) {
-        console.error("LIFF 初始化失敗", error);
-        status.textContent =
-          "LINE 初始化失敗，請確認 LIFF 設定。";
-      }
+    if (!liffReady || !liff.isLoggedIn()) {
+      orderStatus.textContent = "請先登入 LINE，再送出訂單。";
+      return;
     }
 
-    renderProducts();
-    initializeLiff();
-  </script>
+    const customerName =
+      document.getElementById("customer-name").value.trim();
+    const customerPhone =
+      document.getElementById("customer-phone").value.trim();
+    const pickupInfo =
+      document.getElementById("pickup-info").value.trim();
+    const items = getSelectedProducts();
+
+    if (!customerName || !customerPhone || !pickupInfo) {
+      orderStatus.textContent = "請填寫姓名、聯絡電話及取貨資訊。";
+      return;
+    }
+
+    if (!/^09\d{8}$/.test(customerPhone)) {
+      orderStatus.textContent = "請輸入正確的台灣手機號碼，例如 0912345678。";
+      return;
+    }
+
+    if (items.length === 0) {
+      orderStatus.textContent = "請至少選擇一項商品。";
+      return;
+    }
+
+    let idToken;
+    try {
+      idToken = liff.getIDToken();
+    } catch (error) {
+      console.error("取得 LINE ID Token 失敗", error);
+    }
+
+    if (!idToken) {
+      orderStatus.textContent =
+        "無法取得 LINE 身分驗證資料。請確認 LIFF 已開啟 openid 權限，然後重新登入。";
+      return;
+    }
+
+    submitting = true;
+    submitButton.disabled = true;
+    submitButton.textContent = "訂單送出中…";
+
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          idToken,
+          customerName,
+          customerPhone,
+          pickupInfo,
+          items
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || result.ok !== true) {
+        throw new Error(result.error || result.message ||
+          `送出失敗（HTTP ${response.status}）`);
+      }
+
+      orderStatus.textContent =
+        "訂單已送出！請留意 LINE 訊息，並確認取貨安排。";
+      orderStatus.style.color = "#3f5d38";
+
+      quantities && products.forEach(product => {
+        quantities[product.id] = 0;
+        document.getElementById("qty-" + product.id).textContent = "0";
+      });
+      renderSummary();
+
+      document.getElementById("customer-name").value = "";
+      document.getElementById("customer-phone").value = "";
+      document.getElementById("pickup-info").value = "";
+    } catch (error) {
+      console.error("送出訂單失敗", error);
+      orderStatus.textContent =
+        "訂單送出失敗：" + error.message +
+        "。請先確認 LINE 訂單群組是否已收到，避免重複下單。";
+      orderStatus.style.color = "#b42318";
+    } finally {
+      submitting = false;
+      submitButton.disabled = !liffReady;
+      submitButton.textContent = "送出訂單";
+    }
+  }
+
+  submitButton.addEventListener("click", submitOrder);
+
+  renderProducts();
+  initializeLiff();
+</script>
 </body>
 </html>
