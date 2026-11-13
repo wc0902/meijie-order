@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -186,6 +187,46 @@
       overflow-wrap: anywhere;
     }
 
+    .payment-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .payment-option:has(input:checked) {
+      border: 2px solid var(--green);
+      background: #f4f7f0;
+      padding: 14px;
+    }
+
+    .payment-option input {
+      width: 19px;
+      height: 19px;
+      accent-color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .payment-info {
+      flex: 1;
+    }
+
+    .payment-name {
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .payment-description {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .submit-button {
       width: 100%;
       margin-top: 18px;
@@ -221,6 +262,7 @@
   </header>
 
   <main class="container">
+
     <div class="notice">
       歡迎來到梅姐蔬食！<br>
       請選擇想購買的品項與數量，確認金額後即可準備送出訂單。
@@ -231,6 +273,7 @@
 
     <section class="summary">
       <h2 class="section-title" style="margin-top:0">訂單摘要</h2>
+
       <div id="order-summary">
         <div class="summary-row">
           <span>尚未選擇商品</span>
@@ -245,342 +288,119 @@
     </section>
 
     <section class="customer">
-  <strong>LINE 客戶身分</strong>
-  <div id="liff-status" class="status">
-    正在初始化 LINE...
-  </div>
-</section>
+      <strong>LINE 客戶身分</strong>
+      <div id="liff-status" class="status">
+        正在初始化 LINE...
+      </div>
+    </section>
 
-<section class="customer">
-  <strong>訂購人資料</strong>
+    <section class="customer">
+      <strong>訂購人資料</strong>
 
-  <div style="margin-top:12px">
-    <label for="customer-name">姓名 *</label>
-    <input
-      id="customer-name"
-      type="text"
-      maxlength="50"
-      autocomplete="name"
-      placeholder="請輸入訂購人姓名"
-      required
-      style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px"
-    >
-  </div>
+      <div style="margin-top:12px">
+        <label for="customer-name">姓名 *</label>
+        <input
+          id="customer-name"
+          type="text"
+          maxlength="50"
+          autocomplete="name"
+          placeholder="請輸入訂購人姓名"
+          required
+          style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px"
+        >
+      </div>
 
-  <div style="margin-top:14px">
-    <label for="customer-phone">聯絡電話 *</label>
-    <input
-      id="customer-phone"
-      type="tel"
-      maxlength="20"
-      autocomplete="tel"
-      placeholder="例如：0912345678"
-      required
-      style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px"
-    >
-  </div>
+      <div style="margin-top:14px">
+        <label for="customer-phone">聯絡電話 *</label>
+        <input
+          id="customer-phone"
+          type="tel"
+          maxlength="20"
+          autocomplete="tel"
+          placeholder="例如：0912345678"
+          required
+          style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px"
+        >
+      </div>
 
-  <div style="margin-top:14px">
-    <label for="pickup-info">取貨日期、時間或其他需求 *</label>
-    <textarea
-      id="pickup-info"
-      maxlength="200"
-      rows="1"
-      placeholder="請先與梅姐溝通好品項及取貨時間，雙方有共識後再下訂單呦^^"
-      required
-      style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px;resize:vertical"
-    ></textarea>
-  </div>
-</section>
+      <div style="margin-top:14px">
+        <label for="pickup-info">取貨日期、時間或其他需求 *</label>
+        <textarea
+          id="pickup-info"
+          maxlength="200"
+          rows="1"
+          placeholder="請先與梅姐溝通好品項及取貨時間，雙方有共識後再下訂單呦^^"
+          required
+          style="display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #e6e4da;border-radius:8px;font-size:16px;resize:vertical"
+        ></textarea>
+      </div>
+    </section>
 
-<div id="order-status" class="status" role="status" aria-live="polite"></div>
+    <!-- 新增：付款方式 -->
+    <section class="customer">
+      <strong>付款方式</strong>
+
+      <label class="payment-option">
+        <input
+          type="radio"
+          name="payment-method"
+          value="LINE_PAY"
+          checked
+        >
+        <div class="payment-info">
+          <div class="payment-name">LINE Pay</div>
+          <div class="payment-description">
+            送出訂單後，前往 LINE Pay 付款頁面完成付款
+          </div>
+        </div>
+      </label>
+
+      <label class="payment-option">
+        <input
+          type="radio"
+          name="payment-method"
+          value="BANK_TRANSFER"
+        >
+        <div class="payment-info">
+          <div class="payment-name">銀行轉帳</div>
+          <div class="payment-description">
+            維持原本的訂單通知及銀行轉帳流程
+          </div>
+        </div>
+      </label>
+    </section>
+
+    <div id="order-status" class="status"
+      role="status" aria-live="polite"></div>
 
     <button id="submit-button" class="submit-button" disabled>
-  正在連線 LINE…
-</button>
+      正在連線 LINE…
+    </button>
 
     <p class="footer">
-      梅姐蔬食｜感謝您的支持<br>
+      梅姐蔬食｜感謝您的支持
     </p>
+
   </main>
 
   <script>
-  const LIFF_ID = "2012058131-jaJTCBOA";
-  const WORKER_URL =
-    "https://meijie-line-bot.weichen0902.workers.dev/liff-order";
+    const LIFF_ID = "2012058131-jaJTCBOA";
 
-  const products = [
-  { id: "tofu-sushi", name: "豆皮壽司", price: 120, unit: "份" },
-  { id: "signature-sushi", name: "招牌壽司", price: 120, unit: "份" },
-  { id: "assorted-sushi-rolls", name: "綜合壽司", price: 120, unit: "份" },
-  { id: "vegetable-box", name: "元氣時蔬餐盒", price: 120, unit: "份" },
-   { id: "spicy-tofu", name: "麻辣臭豆腐", price: 320, unit: "包" },
-  { id: "tea-egg", name: "阿薩姆茶葉蛋", price: 50, unit: "份" },
-  { id: "energy-drink", name: "能量穀漿", price: 70, unit: "杯" },
-  { id: "pu-erh-milktea", name: "普洱奶茶", price: 60, unit: "杯" }
-];
+    const WORKER_BASE_URL =
+      "https://meijie-line-bot.weichen0902.workers.dev";
 
-  const quantities = {};
-  let liffReady = false;
-  let submitting = false;
+    const BANK_ORDER_URL =
+      WORKER_BASE_URL + "/liff-order";
 
-  products.forEach(product => {
-    quantities[product.id] = 0;
-  });
+    const LINE_PAY_URL =
+      WORKER_BASE_URL + "/create-payment";
 
-  const submitButton = document.getElementById("submit-button");
-  const liffStatus = document.getElementById("liff-status");
-  const orderStatus = document.getElementById("order-status");
-    const pickupTextarea = document.getElementById("pickup-info");
-
-  function adjustPickupTextarea() {
-    const mirror = document.createElement("div");
-    const style = getComputedStyle(pickupTextarea);
-
-    mirror.style.position = "absolute";
-    mirror.style.visibility = "hidden";
-    mirror.style.width = pickupTextarea.clientWidth + "px";
-    mirror.style.boxSizing = style.boxSizing;
-    mirror.style.padding = style.padding;
-    mirror.style.border = style.border;
-    mirror.style.font = style.font;
-    mirror.style.letterSpacing = style.letterSpacing;
-    mirror.style.lineHeight = style.lineHeight;
-    mirror.style.whiteSpace = "pre-wrap";
-    mirror.style.overflowWrap = "break-word";
-    mirror.style.wordBreak = "break-word";
-
-    mirror.textContent =
-      pickupTextarea.value || pickupTextarea.placeholder;
-
-    document.body.appendChild(mirror);
-
-    pickupTextarea.style.height = "auto";
-    pickupTextarea.style.height =
-      Math.max(mirror.scrollHeight, 40) + "px";
-
-    mirror.remove();
-  }
-
-  pickupTextarea.addEventListener("input", adjustPickupTextarea);
-  window.addEventListener("resize", adjustPickupTextarea);
-  adjustPickupTextarea();
-
-  function renderProducts() {
-    const list = document.getElementById("product-list");
-
-    list.innerHTML = products.map(product => `
-      <article class="product">
-        <div class="product-info">
-          <h3 class="product-name">${product.name}</h3>
-          <div class="product-price">
-            NT$${product.price}
-            <span class="unit">／${product.unit}</span>
-          </div>
-        </div>
-
-        <div class="quantity">
-          <button type="button"
-            aria-label="減少${product.name}"
-            data-action="minus"
-            data-id="${product.id}">−</button>
-
-          <span class="quantity-value" id="qty-${product.id}">0</span>
-
-          <button type="button"
-            aria-label="增加${product.name}"
-            data-action="plus"
-            data-id="${product.id}">+</button>
-        </div>
-      </article>
-    `).join("");
-
-    list.addEventListener("click", handleQuantityClick);
-    renderSummary();
-  }
-
-  function handleQuantityClick(event) {
-    const button = event.target.closest("button[data-action]");
-    if (!button || submitting) return;
-
-    const id = button.dataset.id;
-    const action = button.dataset.action;
-
-    if (action === "plus" && quantities[id] < 99) {
-      quantities[id] += 1;
-    } else if (action === "minus") {
-      quantities[id] = Math.max(0, quantities[id] - 1);
-    }
-
-    document.getElementById("qty-" + id).textContent = quantities[id];
-    renderSummary();
-  }
-
-  function getSelectedProducts() {
-    return products
-      .filter(product => quantities[product.id] > 0)
-      .map(product => ({
-        name: product.name,
-        quantity: quantities[product.id]
-      }));
-  }
-
-  function renderSummary() {
-    const selected = products.filter(
-      product => quantities[product.id] > 0
-    );
-
-    const total = selected.reduce(
-      (sum, product) =>
-        sum + product.price * quantities[product.id],
-      0
-    );
-
-    const summary = document.getElementById("order-summary");
-
-    if (selected.length === 0) {
-      summary.innerHTML = `
-        <div class="summary-row">
-          <span>尚未選擇商品</span>
-          <span>NT$0</span>
-        </div>`;
-    } else {
-      summary.innerHTML = selected.map(product => `
-        <div class="summary-row">
-          <span>${product.name} × ${quantities[product.id]} ${product.unit}</span>
-          <span>NT$${product.price * quantities[product.id]}</span>
-        </div>
-      `).join("");
-    }
-
-    document.getElementById("total").textContent = "NT$" + total;
-  }
-
-  async function initializeLiff() {
-    try {
-      await liff.init({ liffId: LIFF_ID });
-
-      if (!liff.isLoggedIn()) {
-        liffStatus.textContent = "請登入 LINE 以繼續。";
-        liff.login();
-        return;
-      }
-
-      const profile = await liff.getProfile();
-
-      liffStatus.textContent = "已登入 LINE：" + profile.displayName;
-      liffReady = true;
-      submitButton.disabled = false;
-      submitButton.textContent = "送出訂單";
-    } catch (error) {
-      console.error("LIFF 初始化失敗", error);
-      liffStatus.textContent = "LINE 初始化失敗，請從 LINE 內重新開啟訂購頁。";
-      submitButton.disabled = true;
-    }
-  }
-
-  async function submitOrder() {
-    if (submitting) return;
-
-    orderStatus.textContent = "";
-
-    if (!liffReady || !liff.isLoggedIn()) {
-      orderStatus.textContent = "請先登入 LINE，再送出訂單。";
-      return;
-    }
-
-    const customerName =
-      document.getElementById("customer-name").value.trim();
-    const customerPhone =
-      document.getElementById("customer-phone").value.trim();
-    const pickupInfo =
-      document.getElementById("pickup-info").value.trim();
-    const items = getSelectedProducts();
-
-    if (!customerName || !customerPhone || !pickupInfo) {
-      orderStatus.textContent = "請填寫姓名、聯絡電話及取貨資訊。";
-      return;
-    }
-
-    if (!/^09\d{8}$/.test(customerPhone)) {
-      orderStatus.textContent = "請輸入正確的台灣手機號碼，例如 0912345678。";
-      return;
-    }
-
-    if (items.length === 0) {
-      orderStatus.textContent = "請至少選擇一項商品。";
-      return;
-    }
-
-    let idToken;
-    try {
-      idToken = liff.getIDToken();
-    } catch (error) {
-      console.error("取得 LINE ID Token 失敗", error);
-    }
-
-    if (!idToken) {
-      orderStatus.textContent =
-        "無法取得 LINE 身分驗證資料。請確認 LIFF 已開啟 openid 權限，然後重新登入。";
-      return;
-    }
-
-    submitting = true;
-    submitButton.disabled = true;
-    submitButton.textContent = "訂單送出中…";
-
-    try {
-      const response = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          idToken,
-          customerName,
-          customerPhone,
-          pickupInfo,
-          items
-        })
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok || result.ok !== true) {
-        throw new Error(result.error || result.message ||
-          `送出失敗（HTTP ${response.status}）`);
-      }
-
-      orderStatus.textContent =
-        "訂單已送出！請留意 LINE 訊息，並確認取貨安排。";
-      orderStatus.style.color = "#3f5d38";
-
-      products.forEach(product => {
-        quantities[product.id] = 0;
-        document.getElementById("qty-" + product.id).textContent = "0";
-      });
-      renderSummary();
-
-      document.getElementById("customer-name").value = "";
-      document.getElementById("customer-phone").value = "";
-      document.getElementById("pickup-info").value = "";
-    } catch (error) {
-      console.error("送出訂單失敗", error);
-      orderStatus.textContent =
-        "訂單送出失敗：" + error.message +
-        "。請先確認 LINE 訂單群組是否已收到，避免重複下單。";
-      orderStatus.style.color = "#b42318";
-    } finally {
-      submitting = false;
-      submitButton.disabled = !liffReady;
-      submitButton.textContent = "送出訂單";
-    }
-  }
-
-  submitButton.addEventListener("click", submitOrder);
-
-  renderProducts();
-  initializeLiff();
-</script>
-</body>
-</html>
+    const products = [
+      { id: "tofu-sushi", name: "豆皮壽司", price: 120, unit: "份" },
+      { id: "signature-sushi", name: "招牌壽司", price: 120, unit: "份" },
+      { id: "assorted-sushi-rolls", name: "綜合壽司", price: 120, unit: "份" },
+      { id: "vegetable-box", name: "元氣時蔬餐盒", price: 120, unit: "份" },
+      { id: "spicy-tofu", name: "麻辣臭豆腐", price: 320, unit: "包" },
+      { id: "tea-egg", name: "阿薩姆茶葉蛋", price: 50, unit: "份" },
+      { id: "energy-drink", name: "能量穀漿", price: 70, unit: "杯" },
+      { id: "pu-er
