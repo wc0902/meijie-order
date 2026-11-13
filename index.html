@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -403,4 +402,422 @@
       { id: "spicy-tofu", name: "麻辣臭豆腐", price: 320, unit: "包" },
       { id: "tea-egg", name: "阿薩姆茶葉蛋", price: 50, unit: "份" },
       { id: "energy-drink", name: "能量穀漿", price: 70, unit: "杯" },
-      { id: "pu-er
+      { id: "pu-erh-milktea", name: "普洱奶茶", price: 60, unit: "杯" }
+    ];
+
+    const quantities = {};
+
+    let liffReady = false;
+    let submitting = false;
+    let redirectingToPayment = false;
+
+    products.forEach(product => {
+      quantities[product.id] = 0;
+    });
+
+    const submitButton =
+      document.getElementById("submit-button");
+
+    const liffStatus =
+      document.getElementById("liff-status");
+
+    const orderStatus =
+      document.getElementById("order-status");
+
+    const pickupTextarea =
+      document.getElementById("pickup-info");
+
+    // 自動調整取貨資訊輸入框高度
+    function adjustPickupTextarea() {
+      const mirror = document.createElement("div");
+      const style = getComputedStyle(pickupTextarea);
+
+      mirror.style.position = "absolute";
+      mirror.style.visibility = "hidden";
+      mirror.style.width = pickupTextarea.clientWidth + "px";
+      mirror.style.boxSizing = style.boxSizing;
+      mirror.style.padding = style.padding;
+      mirror.style.border = style.border;
+      mirror.style.font = style.font;
+      mirror.style.letterSpacing = style.letterSpacing;
+      mirror.style.lineHeight = style.lineHeight;
+      mirror.style.whiteSpace = "pre-wrap";
+      mirror.style.overflowWrap = "break-word";
+      mirror.style.wordBreak = "break-word";
+
+      mirror.textContent =
+        pickupTextarea.value || pickupTextarea.placeholder;
+
+      document.body.appendChild(mirror);
+
+      pickupTextarea.style.height = "auto";
+      pickupTextarea.style.height =
+        Math.max(mirror.scrollHeight, 40) + "px";
+
+      mirror.remove();
+    }
+
+    pickupTextarea.addEventListener(
+      "input",
+      adjustPickupTextarea
+    );
+
+    window.addEventListener(
+      "resize",
+      adjustPickupTextarea
+    );
+
+    adjustPickupTextarea();
+
+    // 顯示商品
+    function renderProducts() {
+      const list = document.getElementById("product-list");
+
+      list.innerHTML = products.map(product => `
+        <article class="product">
+          <div class="product-info">
+            <h3 class="product-name">${product.name}</h3>
+
+            <div class="product-price">
+              NT$${product.price}
+              <span class="unit">／${product.unit}</span>
+            </div>
+          </div>
+
+          <div class="quantity">
+            <button
+              type="button"
+              aria-label="減少${product.name}"
+              data-action="minus"
+              data-id="${product.id}"
+            >−</button>
+
+            <span
+              class="quantity-value"
+              id="qty-${product.id}"
+            >0</span>
+
+            <button
+              type="button"
+              aria-label="增加${product.name}"
+              data-action="plus"
+              data-id="${product.id}"
+            >+</button>
+          </div>
+        </article>
+      `).join("");
+
+      list.addEventListener(
+        "click",
+        handleQuantityClick
+      );
+
+      renderSummary();
+    }
+
+    // 商品數量調整
+    function handleQuantityClick(event) {
+      const button = event.target.closest(
+        "button[data-action]"
+      );
+
+      if (!button || submitting) return;
+
+      const id = button.dataset.id;
+      const action = button.dataset.action;
+
+      if (action === "plus" && quantities[id] < 99) {
+        quantities[id] += 1;
+      } else if (action === "minus") {
+        quantities[id] = Math.max(
+          0,
+          quantities[id] - 1
+        );
+      }
+
+      document.getElementById(
+        "qty-" + id
+      ).textContent = quantities[id];
+
+      renderSummary();
+    }
+
+    // 取得已選商品
+    function getSelectedProducts() {
+      return products
+        .filter(product => quantities[product.id] > 0)
+        .map(product => ({
+          name: product.name,
+          quantity: quantities[product.id]
+        }));
+    }
+
+    // 計算訂單金額
+    function renderSummary() {
+      const selected = products.filter(
+        product => quantities[product.id] > 0
+      );
+
+      const total = selected.reduce(
+        (sum, product) =>
+          sum + product.price * quantities[product.id],
+        0
+      );
+
+      const summary =
+        document.getElementById("order-summary");
+
+      if (selected.length === 0) {
+        summary.innerHTML = `
+          <div class="summary-row">
+            <span>尚未選擇商品</span>
+            <span>NT$0</span>
+          </div>
+        `;
+      } else {
+        summary.innerHTML = selected.map(product => `
+          <div class="summary-row">
+            <span>
+              ${product.name} × ${quantities[product.id]}
+              ${product.unit}
+            </span>
+
+            <span>
+              NT$${product.price * quantities[product.id]}
+            </span>
+          </div>
+        `).join("");
+      }
+
+      document.getElementById("total").textContent =
+        "NT$" + total;
+    }
+
+    // 取得付款方式
+    function getPaymentMethod() {
+      const selected = document.querySelector(
+        'input[name="payment-method"]:checked'
+      );
+
+      return selected ? selected.value : "LINE_PAY";
+    }
+
+    // 初始化 LINE LIFF
+    async function initializeLiff() {
+      try {
+        await liff.init({
+          liffId: LIFF_ID
+        });
+
+        if (!liff.isLoggedIn()) {
+          liffStatus.textContent =
+            "請登入 LINE 以繼續。";
+
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+
+        liffStatus.textContent =
+          "已登入 LINE：" + profile.displayName;
+
+        liffReady = true;
+
+        submitButton.disabled = false;
+        submitButton.textContent = "送出訂單";
+
+      } catch (error) {
+        console.error("LIFF 初始化失敗", error);
+
+        liffStatus.textContent =
+          "LINE 初始化失敗，請從 LINE 內重新開啟訂購頁。";
+
+        submitButton.disabled = true;
+      }
+    }
+
+    // 送出訂單
+    async function submitOrder() {
+      if (submitting) return;
+
+      orderStatus.textContent = "";
+
+      if (!liffReady || !liff.isLoggedIn()) {
+        orderStatus.textContent =
+          "請先登入 LINE，再送出訂單。";
+        return;
+      }
+
+      const customerName =
+        document.getElementById("customer-name")
+          .value.trim();
+
+      const customerPhone =
+        document.getElementById("customer-phone")
+          .value.trim();
+
+      const pickupInfo =
+        document.getElementById("pickup-info")
+          .value.trim();
+
+      const items = getSelectedProducts();
+
+      const paymentMethod = getPaymentMethod();
+
+      // 檢查訂購資料
+      if (!customerName || !customerPhone || !pickupInfo) {
+        orderStatus.textContent =
+          "請填寫姓名、聯絡電話及取貨資訊。";
+        return;
+      }
+
+      if (!/^09\d{8}$/.test(customerPhone)) {
+        orderStatus.textContent =
+          "請輸入正確的台灣手機號碼，例如 0912345678。";
+        return;
+      }
+
+      if (items.length === 0) {
+        orderStatus.textContent =
+          "請至少選擇一項商品。";
+        return;
+      }
+
+      // 取得 LINE ID Token
+      let idToken;
+
+      try {
+        idToken = liff.getIDToken();
+      } catch (error) {
+        console.error(
+          "取得 LINE ID Token 失敗",
+          error
+        );
+      }
+
+      if (!idToken) {
+        orderStatus.textContent =
+          "無法取得 LINE 身分驗證資料。請確認 LIFF 已開啟 openid 權限，然後重新登入。";
+        return;
+      }
+
+      submitting = true;
+
+      submitButton.disabled = true;
+
+      submitButton.textContent =
+        paymentMethod === "LINE_PAY"
+          ? "正在建立 LINE Pay 付款..."
+          : "訂單送出中...";
+
+      try {
+        // 依付款方式選擇不同 API
+        const targetUrl =
+          paymentMethod === "LINE_PAY"
+            ? LINE_PAY_URL
+            : BANK_ORDER_URL;
+
+        const response = await fetch(targetUrl, {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            idToken,
+            customerName,
+            customerPhone,
+            pickupInfo,
+            items
+          })
+        });
+
+        const result = await response.json()
+          .catch(() => ({}));
+
+        if (!response.ok || result.ok !== true) {
+          throw new Error(
+            result.error ||
+            result.message ||
+            `送出失敗（HTTP ${response.status}）`
+          );
+        }
+
+        // LINE Pay 付款流程
+        if (paymentMethod === "LINE_PAY") {
+
+          if (!result.paymentUrl) {
+            throw new Error(
+              "LINE Pay 已回應，但沒有取得付款網址。請聯絡梅姐確認訂單狀態。"
+            );
+          }
+
+          orderStatus.style.color = "#3f5d38";
+
+          orderStatus.textContent =
+            "訂單已建立，正在前往 LINE Pay 付款頁面...";
+
+          redirectingToPayment = true;
+
+          // 前往 LINE Pay 付款頁面
+          window.location.assign(result.paymentUrl);
+
+          return;
+        }
+
+        // 銀行轉帳流程：維持原本行為
+        orderStatus.textContent =
+          "訂單已送出！請留意 LINE 訊息，並確認取貨安排。";
+
+        orderStatus.style.color = "#3f5d38";
+
+        products.forEach(product => {
+          quantities[product.id] = 0;
+
+          document.getElementById(
+            "qty-" + product.id
+          ).textContent = "0";
+        });
+
+        renderSummary();
+
+        document.getElementById("customer-name").value = "";
+        document.getElementById("customer-phone").value = "";
+        document.getElementById("pickup-info").value = "";
+
+        adjustPickupTextarea();
+
+      } catch (error) {
+        console.error("送出訂單失敗", error);
+
+        orderStatus.textContent =
+          "訂單送出失敗：" + error.message +
+          "。請先確認 LINE 訂單群組是否已收到，避免重複下單。";
+
+        orderStatus.style.color = "#b42318";
+
+      } finally {
+        submitting = false;
+
+        if (!redirectingToPayment) {
+          submitButton.disabled = !liffReady;
+          submitButton.textContent = "送出訂單";
+        }
+      }
+    }
+
+    // 綁定送出按鈕
+    submitButton.addEventListener(
+      "click",
+      submitOrder
+    );
+
+    // 啟動網頁
+    renderProducts();
+    initializeLiff();
+
+  </script>
+</body>
+</html>
